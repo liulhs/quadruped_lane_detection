@@ -1,0 +1,15 @@
+[project]
+name = "quadruped-lane-detection"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "albumentations>=2.0.8",
+    "labelme>=6.0.0",
+    "numpy>=2.4.4",
+    "onnx>=1.21.0",
+    "onnxscript>=0.6.2",
+    "opencv-python>=4.13.0.92",
+    "torch>=2.11.0",
+    "torchvision>=0.26.0",
+]

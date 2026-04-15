@@ -1,0 +1,220 @@
+{
+  "version": "6.0.0",
+  "flags": {},
+  "shapes": [
+    {
+      "label": "contact",
+      "points": [
+        [
+          509.40828402366856,
+          554.792899408284
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          707.2772277227723,
+          507.0792079207921
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          796.3861386138615,
+          483.5643564356436
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          842.920792079208,
+          468.7128712871287
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          870.6435643564356,
+          463.5148514851485
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          890.4455445544555,
+          460.29702970297035
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          907.0297029702971,
+          455.09900990099015
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          918.910891089109,
+          452.62376237623766
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          927.5742574257425,
+          450.6435643564356
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          1532.1115537848607,
+          615.2988047808765
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          1329.7211155378486,
+          540.796812749004
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          1240.8764940239046,
+          512.5099601593625
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          1193.0677290836654,
+          494.5816733067728
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          1162.0703933747411,
+          483.8405797101449
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    },
+    {
+      "label": "contact",
+      "points": [
+        [
+          1137.2256728778468,
+          475.6625258799172
+        ]
+      ],
+      "group_id": null,
+      "description": "",
+      "shape_type": "point",
+      "flags": {},
+      "mask": null
+    }
+  ],
+  "imagePath": "aisle_7_cw5.jpg",
+  "imageData": null,
+  "imageHeight": 1080,
+  "imageWidth": 1920
+}

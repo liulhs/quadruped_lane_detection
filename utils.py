@@ -80,26 +80,3 @@ def draw_overlay(frame, vp, left_line, right_line, state):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
 
     return out
-
-
-def extend_line_to_roi(vx, vy, angle_deg, roi_top, roi_bot, img_w):
-    """
-    Given a line defined by a point (vx, vy) and angle (degrees from horizontal),
-    return two endpoints clipped to the ROI y range.
-    """
-    angle_rad = np.deg2rad(angle_deg)
-    dx = np.cos(angle_rad)
-    dy = np.sin(angle_rad)
-    if abs(dy) < 1e-6:
-        return None
-
-    # t at top of ROI
-    t_top = (roi_top - vy) / dy
-    x_top = vx + t_top * dx
-
-    # t at bottom of ROI
-    t_bot = (roi_bot - vy) / dy
-    x_bot = vx + t_bot * dx
-
-    return ((int(np.clip(x_top, 0, img_w - 1)), roi_top),
-            (int(np.clip(x_bot, 0, img_w - 1)), roi_bot))

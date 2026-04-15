@@ -4,37 +4,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Purpose
 
-Vision-based aisle navigation for a quadruped robot in row-crop orchards. Detects tree-row boundaries from a forward-facing camera, computes a vanishing point (VP), and determines lateral drift relative to the aisle centerline — enabling steering corrections without GPS or LiDAR. All processing uses classical OpenCV (no neural networks) to run on edge hardware (RPi4 / Jetson Nano).
+Vision-based aisle navigation for a quadruped robot in row-crop orchards. Uses an ML model (ContactPointNet) to detect tree-ground contact points from a forward-facing camera, fits boundary lines through left/right tree rows, computes a vanishing point (VP), and determines lateral drift relative to the aisle centerline — enabling steering corrections without GPS or LiDAR. Runs on edge hardware (RPi4 / Jetson Nano) via ONNX + OpenCV DNN.
 
 ## Commands
 
 ```bash
-# Run a single detector on one image
-python detect_option_a.py aisle_3.jpg        # Hough-based, saves to output/optionA/
-python detect_option_b.py aisle_3.jpg        # HSV+RANSAC, saves to output/optionB/
+# Run detector on one image
+python detect.py aisle_3.jpg              # saves to output/
 
-# Benchmark both detectors across all test images (FPS + accuracy)
-python benchmark.py                          # both options, 20 reps
-python benchmark.py --option a --reps 50     # option A only, 50 reps for stable FPS
+# Benchmark across all test images (FPS + accuracy)
+python benchmark.py                       # 20 reps per image
+python benchmark.py --reps 50             # more reps for stable FPS
+
+# Train the model (requires PyTorch + labeled data)
+python -m ml.train --image-dir . --epochs 200
+
+# Export trained model to ONNX
+python -m ml.export_onnx
 ```
 
-No build step, no package manager, no tests. Dependencies: Python 3, OpenCV (`cv2`), NumPy.
+Runtime dependencies: Python 3, OpenCV (`cv2`), NumPy.
+Training dependencies: PyTorch, torchvision, albumentations, onnx.
 
 ## Architecture
 
-Two competing detection pipelines share a common interface and utility layer:
+ML-based detection pipeline:
 
-- **`detect_option_a.py`** — Hough Line Transform. Upper-ROI-first strategy: runs Hough on the full ROI with long `minLineLength`, prefers segments near the horizon (less clutter), falls back to shorter segments per-side. Two-pass approach (primary + fallback) with slope filtering to reject drip lines and fence posts.
+- **`detect.py`** — Main detector. Loads ONNX model via `cv2.dnn`, runs ContactPointNet to produce a heatmap, extracts contact point peaks, classifies left/right, fits boundary lines, computes VP and lateral state. Exposes `detect(frame, K=None, D=None) -> (vp, state, overlay, left_line, right_line)`.
 
-- **`detect_option_b.py`** — HSV soil segmentation + boundary fitting. Thresholds sandy-soil color in HSV, isolates the aisle via connected components (seeds from bottom-center), scans rows for left/right boundary points, fits lines with DIST_HUBER. Includes temporal smoothing (carries previous frame's lines) and symmetry fallback (mirrors one side if the other is missing).
+- **`ml/model.py`** — ContactPointNet architecture. MobileNetV2 (pretrained) encoder with stride-8/16/32 feature taps, 3-stage transposed-conv decoder with skip connections, outputs 1-channel 160×120 heatmap.
 
-- **`utils.py`** — Shared functions used by both detectors:
+- **`ml/dataset.py`** — Dataset class. Reads LabelMe per-image JSONs or consolidated `annotations/annotations.json`. Generates Gaussian heatmaps as supervision targets. Heavy albumentations augmentation for small-dataset training.
+
+- **`ml/train.py`** — Training loop. Modified focal loss, AdamW optimizer, cosine LR scheduler, early stopping, validation visualization.
+
+- **`ml/inference.py`** — Heatmap post-processing (PyTorch-free). NMS-based peak extraction, sub-pixel refinement, left/right classification, `cv2.fitLine(DIST_HUBER)` line fitting.
+
+- **`ml/export_onnx.py`** — PyTorch → ONNX export for edge deployment.
+
+- **`utils.py`** — Shared functions:
   - `undistort_stub` — identity pass-through until real camera calibration (K, D matrices) is available
   - `line_intersect` — homogeneous-coordinate line intersection
   - `lateral_state` — classifies VP x-offset as `centered`/`drift_left`/`drift_right` (6% dead zone)
   - `draw_overlay` — renders red boundary lines, VP marker, white centerline arrow, state text
-
-Both detectors expose `detect(frame, K=None, D=None) -> (vp, state, overlay, left_line, right_line)` with the same return signature.
 
 ## Git Policy
 
@@ -42,11 +54,21 @@ All commits must use the repository owner's identity (`liulhs`). Do NOT include 
 
 ## Key Design Decisions
 
-- All frames are resized to 640x480 before processing. The top 1/3 is discarded as sky/canopy ROI.
+- All frames are resized to 640x480 before processing.
+- Model outputs heatmap at 1/4 resolution (160×120). Peaks are scaled back to image coords with sub-pixel refinement.
+- Contact points are classified left/right by x-position relative to image center (320px).
 - VP is rejected if below 75% of image height or wildly off-center — prevents diverging-line false positives.
-- Option A uses dx/dy slope convention (not dy/dx) so negative slope = left row, positive = right row.
-- Option B's HSV soil range (`H:5-35, S:10-140, V:90-255`) is calibrated for sandy orchard soil in direct sunlight.
-- Camera undistortion is stubbed out — `K` and `D` are not yet calibrated. First roadmap item.
+- Camera undistortion is stubbed out — `K` and `D` are not yet calibrated.
+- Edge deployment uses ONNX + OpenCV DNN only (no PyTorch at runtime).
+- Training uses ImageNet-pretrained MobileNetV2 backbone with early layers frozen to prevent overfitting on small datasets.
+
+## Data Labeling
+
+Use LabelMe (`pip install labelme`) to annotate tree-ground contact points:
+- Open each image, use "Create Point" tool, click where each tree trunk meets the soil
+- Label each point as `contact`
+- LabelMe saves per-image JSON files beside the images
+- The training pipeline discovers these automatically
 
 ## Plugins & MCP Servers
 
@@ -54,10 +76,10 @@ Three plugin servers are available. Use them proactively — don't wait for the 
 
 ### Context7 — Live Documentation Lookup
 
-Use Context7 whenever working with OpenCV, NumPy, or any library API — even if you think you know the answer. Your training data may be stale.
+Use Context7 whenever working with OpenCV, NumPy, PyTorch, or any library API — even if you think you know the answer. Your training data may be stale.
 
 - **Workflow**: Always call `resolve-library-id` first to get the Context7 library ID, then `query-docs` with that ID.
-- **When to use**: Any OpenCV function usage (e.g., `cv2.HoughLinesP` parameters, `cv2.fitLine` flags), NumPy array operations, Python stdlib edge cases, or if the user introduces a new dependency.
+- **When to use**: Any OpenCV function usage (e.g., `cv2.dnn` API, `cv2.fitLine` flags), PyTorch model operations, NumPy array operations, Python stdlib edge cases, or if the user introduces a new dependency.
 - **Limit**: Max 3 calls per question. If you can't find what you need after 3, use the best result.
 
 ### Notion — Project Documentation & Task Tracking
